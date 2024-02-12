@@ -1,0 +1,19 @@
+name: 'Publish Terraform Plans on Pull Request'
+description: 'Publish Terraform Plans on Pull Request'
+inputs:
+  git-repository:
+    required: true
+  default-branch:
+    required: true
+  yaml-file-path:
+    required: true
+  target-property:
+    required: true
+  github-token:
+    required: true
+  release-identifier:
+    required: true
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'

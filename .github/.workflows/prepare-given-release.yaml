@@ -1,0 +1,60 @@
+name: Prepare Release with Given Identifier
+description: Prepares a draft release on the current repository and creates a PR against the targeted GitOps repository
+
+on:
+  worfklow_call: 
+    inputs:
+      gitops-repository:
+        description: The GitOps repository that deploys the artifact to be released
+        required: false
+        default: bks-system-apps
+      gitops-default-branch:
+        description: The branch in the GitOps repository against which the PR should be created
+        required: false
+        default: main  
+      yaml-file-path:
+        description: The path of the yaml file to update relative to the repository root
+        required: true
+      target-property:
+        description: The property in the yaml file that carries the release identifier
+        required: false
+        default: spec.ref.tag
+      release-target:
+        description: The branch against from which the release will be generated
+        required: false
+        default: main
+      tag:
+        description: Tag name to use for release 
+        required: true
+
+jobs:
+  prepare-release:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Generate GitHub App Token
+      uses: actions/create-github-app-token@v1
+      id: app-token
+      with:
+        app-id: 392270 #ID of the GHA_RUNNER_APP
+        private-key: ${{ secrets.GHA_RUNNER_APP_KEY }}
+
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Prepare Draft Release
+      uses: ncipollo/release-action@v1
+      with:
+        allowUpdates: true #so that we can run it idempotently during the draft release's lifespan 
+        draft: true
+        commit: main # consistent amongst all our tf repos
+        generateReleaseNotes: true
+        makeLatest: true
+        tag: ${{ inputs.tag }}
+
+    - name: Prepare release PR in bks-system-apps
+      uses: bison-cloud-platform/bks-release-to-gitops@v0.1.0
+      with:
+        git-repository-manifest: terraform-repos/overlays/aws/mgmt-prod-repo.yaml
+        release: ${{ inputs.tag }}
+        github-token: ${{ steps.app-token.outputs.token }}
