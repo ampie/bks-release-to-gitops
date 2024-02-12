@@ -1,0 +1,15 @@
+name: 'Publish Terraform Plans on Pull Request'
+description: 'Publish Terraform Plans on Pull Request'
+inputs:
+  git-repository-manifest:
+    required: true
+  target-property:
+    default: 'spec.ref.tag'
+  github-token:
+    required: true
+  release:
+    required: true
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
